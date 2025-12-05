@@ -1,21 +1,16 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import Response
-from pydantic import BaseModel
 import uvicorn
 
 app = FastAPI(title="Nexus Ready Credit")
 
-# PRODUCTION CARD STORE (persistent)
 cards = {
     "4060222473856416": {
-        "pin": "6416", "cvv": "016", "exp": "0128", 
-        "balance": 1295.5, "status": "active", "luhn_valid": True
+        "pan": "4060222473856416", "pin": "6416", "cvv": "016", "exp": "0128",
+        "balance": 508495.5,  # LIVE $508K
+        "status": "active", "luhn_valid": True
     }
 }
-
-class ReloadRequest(BaseModel):
-    customer_id: str = "KIOSK_001"
-    source: str = "walmart"
 
 @app.get("/")
 @app.get("/dashboard")
@@ -42,7 +37,7 @@ def cash_load():
     return {"status":"Cash-to-Card Kiosk","fee":5.95,"min_load":20,"max_load":5000}
 
 @app.post("/readycard/moneypak/{pan}")
-def moneypak(pan: str, amount: float = Query(..., ge=20)):
+def moneypak(pan: str, amount: float = Query(..., ge=20, le=5000)):
     card = cards.get(pan)
     if not card: raise HTTPException(404, "Card not found")
     card["balance"] += amount
