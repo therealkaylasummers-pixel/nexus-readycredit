@@ -1,0 +1,10 @@
+# 1. LOCAL DEV (Already working!)
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# 2. DOCKER (After Docker Desktop restart)
+docker-compose up --build -d
+
+# 3. RENDER.COM PRODUCTION (Recommended)
+# Push to GitHub → render.com → Web Service
+# Build: pip install -r requirements.txt
+# Start: uvicorn main:app --host 0.0.0.0 --port $PORT
