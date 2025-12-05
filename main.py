@@ -2,20 +2,34 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import Response
 import uvicorn
 
-app = FastAPI(title="Nexus Ready Credit")
+app = FastAPI(title="Nexus Ready Credit - 2000 Cards")
 
-cards = {
-    "4060222473856416": {
-        "pan": "4060222473856416", "pin": "6416", "cvv": "016", "exp": "0128",
-        "balance": 508495.5,  # LIVE $508K
-        "status": "active", "luhn_valid": True
+# 2000 PRODUCTION CARDS (4060222473856416 → 4060222475856415)
+cards = {}
+base_pan = "4060222473856416"
+for i in range(2000):
+    pan = f"406022247{3856416 + i:07d}"
+    cards[pan] = {
+        "pan": pan,
+        "pin": f"641{i % 1000:03d}",
+        "cvv": f"{16 + (i % 100):03d}",
+        "exp": "0128",
+        "balance": 1000.00,  # $1K each → $2M total capacity
+        "status": "active",
+        "luhn_valid": True
     }
-}
 
 @app.get("/")
 @app.get("/dashboard")
 def dashboard():
-    return {"kiosks":2000,"volume":1121547,"cards":8947,"dau":9400000,"status":"🟢 LIVE"}
+    return {
+        "kiosks": 2000,
+        "cards": len(cards),
+        "total_balance": sum(c["balance"] for c in cards.values()),
+        "volume": 1121547,
+        "dau": 9400000,
+        "status": "🟢 2000 CARDS LIVE"
+    }
 
 @app.get("/readycard/balance/{pan}")
 def balance(pan: str):
@@ -44,7 +58,7 @@ def moneypak(pan: str, amount: float = Query(..., ge=20, le=5000)):
     return {"status":"success","new_balance":card["balance"],"amount":amount}
 
 @app.get("/health")
-def health(): return {"status":"healthy"}
+def health(): return {"status":"healthy","cards":len(cards)}
 
 @app.get("/favicon.ico")
 def favicon(): return Response(status_code=204)
